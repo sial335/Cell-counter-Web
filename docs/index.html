@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b5d4b">
+  <title>Cell Counter</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>RBC &amp; Pollen Cell Counter</h1>
+  <span id="status" class="badge warn">Loading OpenCV…</span>
+</header>
+
+<main>
+
+  <!-- 1. cell type -->
+  <section class="card">
+    <h2>1. Cell type</h2>
+    <label class="choice"><input type="radio" name="mode" value="rbc" checked> Red blood cells (total count)</label>
+    <label class="choice"><input type="radio" name="mode" value="pollen"> Pollen (live / dead, trypan blue)</label>
+  </section>
+
+  <!-- 2. photo -->
+  <section class="card">
+    <h2>2. Photo</h2>
+    <div class="row">
+      <button id="btnCamera" class="primary">Take photo</button>
+      <button id="btnGallery">Choose from gallery</button>
+    </div>
+    <input id="fileCamera" type="file" accept="image/*" capture="environment" hidden>
+    <input id="fileGallery" type="file" accept="image/*" hidden>
+    <p id="msg" class="hint">Take a photo of the hemocytometer through the microscope, or pick one you saved.</p>
+  </section>
+
+  <!-- 3. counting square -->
+  <section class="card" id="viewSection" hidden>
+    <h2>3. Counting square</h2>
+    <p class="hint">Move the green box so it covers ONE counting square (bounded by the triple lines).
+       Only cells inside it are counted.</p>
+    <canvas id="view"></canvas>
+    <div class="sliders">
+      <label>Left <output id="oLeft">25</output>%<input id="left" type="range" min="0" max="95" value="25"></label>
+      <label>Top <output id="oTop">25</output>%<input id="top" type="range" min="0" max="95" value="25"></label>
+      <label>Width <output id="oWidth">50</output>%<input id="width" type="range" min="5" max="100" value="50"></label>
+      <label>Height <output id="oHeight">50</output>%<input id="height" type="range" min="5" max="100" value="50"></label>
+    </div>
+
+    <details>
+      <summary>Detection settings</summary>
+      <div class="sliders">
+        <label>Smallest cell radius <output id="oMinR">8</output> px<input id="minR" type="range" min="4" max="60" value="8"></label>
+        <label>Largest cell radius <output id="oMaxR">16</output> px<input id="maxR" type="range" min="6" max="120" value="16"></label>
+        <label>Sensitivity <output id="oSens">18</output> (lower = finds more)<input id="sens" type="range" min="8" max="60" value="18"></label>
+        <label class="pollenOnly" hidden>Blueness margin <output id="oMargin">10</output> (higher = fewer dead)<input id="margin" type="range" min="0" max="60" value="10"></label>
+      </div>
+      <div class="row">
+        <label class="num">Dilution factor<input id="dilution" type="number" min="1" step="1" value="1"></label>
+        <label class="num">Squares counted<input id="squares" type="number" min="1" step="1" value="1"></label>
+      </div>
+    </details>
+
+    <button id="btnCount" class="primary big">Count cells</button>
+  </section>
+
+  <!-- 4. results -->
+  <section class="card" id="results" hidden>
+    <h2>4. Results</h2>
+    <div class="metrics">
+      <div class="metric"><span id="mTotal">0</span><small>Total</small></div>
+      <div class="metric pollenOnly" hidden><span id="mLive">0</span><small>Live</small></div>
+      <div class="metric pollenOnly" hidden><span id="mDead">0</span><small>Dead</small></div>
+      <div class="metric pollenOnly" hidden><span id="mViab">0%</span><small>Viability</small></div>
+    </div>
+    <p id="conc" class="hint"></p>
+    <canvas id="out"></canvas>
+    <p class="hint">Green = counted (red = dead pollen), yellow = ignored by the border rule (right / bottom edge).</p>
+    <label class="num wide">Manual count for this square (optional)<input id="manual" type="number" min="0" step="1" placeholder="e.g. 112"></label>
+    <div class="row">
+      <button id="btnSave" class="primary">Save result</button>
+      <button id="btnExport">Export all (CSV)</button>
+    </div>
+  </section>
+
+  <!-- saved results -->
+  <section class="card" id="historySection" hidden>
+    <h2>Saved results</h2>
+    <div id="history"></div>
+    <button id="btnClear" class="danger">Clear saved results</button>
+  </section>
+
+  <p class="foot">Runs fully offline on this device. Photos are never uploaded.<br>
+     Research and educational use only. Not a diagnostic device.</p>
+
+</main>
+
+<!-- OpenCV.js must sit next to this file (see README) -->
+<script src="opencv.js" async
+        onerror="document.getElementById('status').textContent='opencv.js missing';document.getElementById('status').className='badge bad';"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
